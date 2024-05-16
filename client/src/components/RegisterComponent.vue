@@ -85,14 +85,14 @@ function onSubmit () {
       if (error.response.status === 400) {
         Notify.create({
           color: 'negative',
-          position: 'top',
+          position: 'bottom',
           message: 'Invalid username, email or password',
           icon: 'report_problem'
         })
       } else {
         Notify.create({
           color: 'negative',
-          position: 'top',
+          position: 'bottom',
           message: 'An error occurred while trying to login',
           icon: 'report_problem'
         })

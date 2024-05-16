@@ -18,6 +18,59 @@ export class CardsService {
     return await this.cardRepository.findOneBy({ id });
   }
 
+  async getCardsToReview(userID: string): Promise<Card[]> {
+    
+    console.log(userID);
+    const cards = await this.cardRepository
+      .createQueryBuilder('card')
+      .leftJoinAndSelect('card.interactions', 'interaction')
+      .where('card.user_id = :userID', { userID })
+      .getMany();
+  
+    const now = new Date();
+    const cardsToReview: any[] = [];
+  
+    for (const card of cards) {
+      const lastInteraction = card.interactions[card.interactions.length - 1];
+      let dueDate: Date;
+  
+      if (!lastInteraction) {
+        dueDate = now;
+      } else {
+        switch (lastInteraction.interactionType) {
+          case 'repeat':
+            dueDate = new Date(lastInteraction.interactionDate.getTime() + 1000 * 60 * 60 * 24); // 1 day
+            break;
+          case 'neutral':
+            dueDate = new Date(lastInteraction.interactionDate.getTime() + 1000 * 60 * 60 * 24 * 3); // 3 days
+            break;
+          case 'confident':
+            dueDate = new Date(lastInteraction.interactionDate.getTime() + 1000 * 60 * 60 * 24 * 7); // 7 days
+            break;
+        }
+      }
+  
+      // console.log('due date', dueDate);
+      // if (dueDate <= now) {
+      //   cardsToReview.push(card);
+      // }
+      cardsToReview.push({...card, dueDate: dueDate });
+    }
+
+    cardsToReview.sort((a,b) => a.dueDate.getTime() < b.dueDate.getTime() ? -1 : 1)
+
+    let sortedCards: Card[] = [];
+
+    cardsToReview.slice(0, 30);
+    cardsToReview.map(card => {
+      delete card.dueDate;
+      delete card.interactions;
+      sortedCards.push(card);
+    })
+
+    return sortedCards;
+  }
+
   async findAllByUser(userID: string): Promise<Card[]> {
     return await this.cardRepository.find({
       where: { user: { id: userID } },

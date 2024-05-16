@@ -16,34 +16,89 @@
     </q-card-section>
 
     <q-card-actions align="right">
-      <q-btn @click="$emit('repeat')">Repeat</q-btn>
-      <q-btn @click="$emit('neutral')">Neutral</q-btn>
-      <q-btn @click="$emit('confident')">Confident</q-btn>
+      <q-btn @click="handleInteraction('repeat')">Repeat</q-btn>
+      <q-btn @click="handleInteraction('neutral')">Neutral</q-btn>
+      <q-btn @click="handleInteraction('confident')">Confident</q-btn>
+      <q-btn @click="handleDelete">Delete</q-btn>
     </q-card-actions>
   </q-card>
 </template>
 
-<script>
-export default {
-  props: {
-    flashcard: {
-      type: Object,
-      required: true
-    }
-  },
-  methods: {
-    getGender(gender) {
-      switch (gender) {
-        case 'male':
-          return 'der';
-        case 'female':
-          return 'die';
-        case 'neuter':
-          return 'das';
-        default:
-          return '';
-      }
-    }
+<script setup>
+import axios from 'axios';
+import { useUserStore } from '../stores/user';
+import { defineProps, defineEmits } from 'vue';
+import { Notify } from 'quasar'
+
+const props = defineProps({
+  flashcard: {
+    type: Object,
+    required: true
   }
-}
+});
+
+const emit = defineEmits(['repeat', 'neutral', 'confident', 'delete']);
+
+const userStore = useUserStore();
+
+const handleInteraction = (interactionType) => {
+  const interactionData = {
+    interactionType,
+    interactionDate: new Date(),
+    card: {
+      id: props.flashcard.id
+    },
+    user: {
+      id: userStore.getID
+    }
+  };
+
+  axios.post('http://localhost:3001/card-interactions', interactionData, {
+    headers: {
+      Authorization: `Bearer ${userStore.getToken}`
+    }
+  })
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+
+  emit(interactionType);
+};
+
+const handleDelete = () => {
+  axios.delete(`http://localhost:3001/cards/${props.flashcard.id}`, {
+    headers: {
+      Authorization: `Bearer ${userStore.getToken}`
+    }
+  })
+    .then(response => {
+      console.log(response.data);
+      emit('delete');
+      Notify.create({
+        color: 'positive',
+        position: 'bottom',
+        message: 'Deleted word!',
+        icon: 'report_problem'
+      })
+    })
+    .catch(error => {
+      console.error(error);
+    });
+};
+
+const getGender = (gender) => {
+  switch (gender) {
+    case 'male':
+      return 'der';
+    case 'female':
+      return 'die';
+    case 'neuter':
+      return 'das';
+    default:
+      return '';
+  }
+};
 </script>

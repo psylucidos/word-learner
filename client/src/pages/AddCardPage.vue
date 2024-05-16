@@ -7,6 +7,7 @@
           <q-select v-model="card.gender" :options="genders" label="Gender" />
           <q-input v-model="card.prefix" label="Prefix" />
           <q-input v-model="card.suffix" label="Suffix" />
+          <q-input v-model="card.translation" label="Translation" />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn type="submit" color="primary">Add Card</q-btn>
@@ -20,6 +21,7 @@
 import { ref } from 'vue'
 import axios from 'axios';
 import { useUserStore } from '../stores/user'
+import { Notify } from 'quasar'
 
 const userStore = useUserStore()
 
@@ -27,7 +29,8 @@ const card = ref({
   word: '',
   gender: '',
   prefix: '',
-  suffix: ''
+  suffix: '',
+  translation: ''
 })
 
 const genders = [
@@ -41,8 +44,7 @@ async function addCard() {
   try {
     const response = await axios.post('http://localhost:3001/cards/',{
         ...card.value,
-        lasttouched: new Date(),
-        user_id: userStore.getID // get the current user's ID here
+        user: userStore.getID // get the current user's ID here
     }, {
       headers: {
         Authorization: `Bearer ${userStore.getToken}`
@@ -50,6 +52,19 @@ async function addCard() {
     })
     console.log(response.data)
     // handle success
+    card.value = {
+      word: '',
+      gender: '',
+      prefix: '',
+      suffix: '',
+      translation: ''
+    }
+    Notify.create({
+      color: 'positive',
+      position: 'bottom',
+      message: 'Added word!',
+      icon: 'report_problem'
+    })
   } catch (error) {
     console.error(error)
     // handle error

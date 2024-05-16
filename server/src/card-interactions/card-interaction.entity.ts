@@ -16,7 +16,9 @@ export class CardInteraction {
   @Column()
   interactionDate: Date;
 
-  @ManyToOne(() => Card, (card) => card.id)
+  @ManyToOne(() => Card, (card) => card.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'card_id' })
   card: Card;
 

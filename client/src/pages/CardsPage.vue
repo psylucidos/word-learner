@@ -6,9 +6,10 @@
           <flash-card
             :key="currentFlashcard.id"
             :flashcard="currentFlashcard"
-            @confident="nextFlashcard('confident')"
-            @neutral="nextFlashcard('neutral')"
-            @repeat="nextFlashcard('repeat')"
+            @confident="nextFlashcard"
+            @neutral="nextFlashcard"
+            @repeat="nextFlashcard"
+            @delete="handleDelete"
           />
         </transition>
       </div>
@@ -17,11 +18,10 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import { ref, computed, onMounted } from 'vue'
 import FlashCard from 'components/FlashCard.vue'
 import { useUserStore } from '../stores/user'
-
-import axios from 'axios';
 
 const userStore = useUserStore()
 
@@ -42,7 +42,11 @@ const currentFlashcard = computed(() => {
 })
 
 onMounted(() => {
-  axios.get('http://localhost:3001/cards/', {
+  getCardDeck();
+})
+
+function getCardDeck() {
+  axios.get('http://localhost:3001/cards/review', {
     headers: {
       Authorization: `Bearer ${userStore.getToken}`
     }
@@ -50,41 +54,24 @@ onMounted(() => {
     .then(response => {
       console.log('got repsonse', response.data);
       flashcards.value = response.data;
+      currentFlashcardIndex.value = 0
     })
     .catch(error => {
       console.error(error);
     });
-})
+}
 
-function nextFlashcard(interactionType) {
+function nextFlashcard() {
   if (currentFlashcardIndex.value < flashcards.value.length - 1) {
     currentFlashcardIndex.value++
   } else {
-    currentFlashcardIndex.value = 0
+    getCardDeck()
   }
+}
 
-  const interactionData = {
-    interactionType: interactionType, // or 'neutral' or 'confident'
-    interactionDate: new Date(), // current date and time
-    card: {
-      id: currentFlashcard.value.id // replace with the actual card ID
-    },
-    user: {
-      id: userStore.getID // replace with the actual user ID
-    }
-  };
-
-  axios.post('http://localhost:3001/card-interactions', interactionData, {
-    headers: {
-      Authorization: `Bearer ${userStore.getToken}`
-    }
-  })
-    .then(response => {
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.error(error);
-    });
+function handleDelete() {
+  flashcards.value = flashcards.value.filter(card => card.id !== currentFlashcard.value.id);
+  nextFlashcard();
 }
 </script>
 

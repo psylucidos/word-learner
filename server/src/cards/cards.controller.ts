@@ -22,6 +22,11 @@ export class CardsController {
     return await this.cardsService.findAllByUser(req.user.id);
   }
 
+  @Get('/review')
+  async findCardsToReview(@Request() req): Promise<Partial<Card>[]> {
+    return await this.cardsService.getCardsToReview(req.user.id);
+  }
+
   @Post()
   async create(@Body() card: Partial<Card>): Promise<Card> {
     return await this.cardsService.create(card);
