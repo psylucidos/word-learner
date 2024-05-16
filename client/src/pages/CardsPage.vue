@@ -6,9 +6,9 @@
           <flash-card
             :key="currentFlashcard.id"
             :flashcard="currentFlashcard"
-            @confident="nextFlashcard"
-            @neutral="nextFlashcard"
-            @repeat="nextFlashcard"
+            @confident="nextFlashcard('confident')"
+            @neutral="nextFlashcard('neutral')"
+            @repeat="nextFlashcard('repeat')"
           />
         </transition>
       </div>
@@ -17,8 +17,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import FlashCard from 'components/FlashCard.vue'
+import { useUserStore } from '../stores/user'
+
+import axios from 'axios';
+
+const userStore = useUserStore()
 
 const flashcards = ref([
   { id: '1', word: 'Hund', gender: 'male', prefix: 'ge', suffix: 'et', lastTouched: '2022-01-01' },
@@ -29,15 +34,57 @@ const flashcards = ref([
 const currentFlashcardIndex = ref(0)
 
 const currentFlashcard = computed(() => {
-  return flashcards.value[currentFlashcardIndex.value]
+  if (flashcards.value[currentFlashcardIndex.value]) {
+    return flashcards.value[currentFlashcardIndex.value]
+  } else {
+    return { id: '1', word: 'No Word found', gender: 'male', prefix: 'ge', suffix: 'et', lastTouched: '2022-01-01' }
+  }
 })
 
-function nextFlashcard() {
+onMounted(() => {
+  axios.get('http://localhost:3001/cards/', {
+    headers: {
+      Authorization: `Bearer ${userStore.getToken}`
+    }
+  })
+    .then(response => {
+      console.log('got repsonse', response.data);
+      flashcards.value = response.data;
+    })
+    .catch(error => {
+      console.error(error);
+    });
+})
+
+function nextFlashcard(interactionType) {
   if (currentFlashcardIndex.value < flashcards.value.length - 1) {
     currentFlashcardIndex.value++
   } else {
     currentFlashcardIndex.value = 0
   }
+
+  const interactionData = {
+    interactionType: interactionType, // or 'neutral' or 'confident'
+    interactionDate: new Date(), // current date and time
+    card: {
+      id: currentFlashcard.value.id // replace with the actual card ID
+    },
+    user: {
+      id: userStore.getID // replace with the actual user ID
+    }
+  };
+
+  axios.post('http://localhost:3001/card-interactions', interactionData, {
+    headers: {
+      Authorization: `Bearer ${userStore.getToken}`
+    }
+  })
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.error(error);
+    });
 }
 </script>
 

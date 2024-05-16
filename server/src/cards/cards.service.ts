@@ -39,7 +39,7 @@ export class CardsService {
     existingCard.gender = card.gender;
     existingCard.prefix = card.prefix;
     existingCard.suffix = card.suffix;
-    existingCard.lasttouched = card.lasttouched;
+    existingCard.interactions = card.interactions;
     return await this.cardRepository.save(existingCard);
   }
 

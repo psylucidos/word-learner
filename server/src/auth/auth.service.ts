@@ -18,8 +18,7 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    const hashedPassword = await argon2.hash(user.password);
-    const isMatch: boolean = await argon2.verify(hashedPassword, user.password);
+    const isMatch: boolean = await argon2.verify(user.password, password);
     if (!isMatch) {
       throw new BadRequestException('Password does not match');
     }
@@ -36,8 +35,7 @@ export class AuthService {
     if (existingUser) {
       throw new BadRequestException('email already exists');
     }
-    const hashedPassword = await argon2.hash(user.password);
-    const newUser: User = { ...user, password: hashedPassword, cards: [] };
+    const newUser: User = { ...user, password: user.password, cards: [] };
     const createdUser = await this.usersService.create(newUser);
     return this.login(createdUser);
   }

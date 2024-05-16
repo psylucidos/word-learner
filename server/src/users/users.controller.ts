@@ -18,7 +18,7 @@ export class UsersController {
   }
 
   @Post()
-  async create(@Body() user: authRequestUserInterface): Promise<User> {
+  async create(@Body() user: Partial<User>): Promise<User> {
     return this.usersService.create(user);
   }
 

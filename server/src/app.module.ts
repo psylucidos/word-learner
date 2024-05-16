@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-// import { ConfigAppModule } from './config.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { CardsModule } from './cards/cards.module';
+import { CardInteractionsModule } from './card-interactions/card-interactions.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtGuard } from './auth/jwt.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -48,6 +48,7 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
     AuthModule,
     UsersModule,
     CardsModule,
+    CardInteractionsModule
   ],
   controllers: [AppController],
   providers: [

@@ -18,7 +18,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import { api } from 'boot/axios'
+import axios from 'axios';
+import { useUserStore } from '../stores/user'
+
+const userStore = useUserStore()
 
 const card = ref({
   word: '',
@@ -36,10 +39,14 @@ const genders = [
 
 async function addCard() {
   try {
-    const response = await api.post('/cards', {
-      ...card.value,
-      lasttouched: new Date(),
-      user_id: '' // get the current user's ID here
+    const response = await axios.post('http://localhost:3001/cards/',{
+        ...card.value,
+        lasttouched: new Date(),
+        user_id: userStore.getID // get the current user's ID here
+    }, {
+      headers: {
+        Authorization: `Bearer ${userStore.getToken}`
+      }
     })
     console.log(response.data)
     // handle success

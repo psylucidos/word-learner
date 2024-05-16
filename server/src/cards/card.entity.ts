@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { User } from '../users/user.entity';
+import { CardInteraction } from '../card-interactions/card-interaction.entity';
 
 @Entity('cards')
 export class Card {
@@ -18,10 +19,10 @@ export class Card {
   @Column()
   suffix: string;
 
-  @Column()
-  lasttouched: string;
-
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(() => CardInteraction, (cardInteraction) => cardInteraction.card)
+  interactions: CardInteraction[];
 }
